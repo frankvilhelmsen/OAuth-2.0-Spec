@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html> 
+   <head> 
+     <title>Oauth Client Flow</title> 
+   </head> 
+<script src="http://code.jquery.com/jquery-latest.min.js"></script>  
+<script> 
+
+var accessToken;
+
+function login_and_get_access_token() {
+  if (window.location.hash.length == 0) {
+    var uri = $("input[name='path']:checked").val(); 
+    window.open (uri,'_self',false)
+   } 
+}
+
+function call_resource_with_token(uri) {
+  var path = uri + "?"+accessToken+"&callback=displayUser";
+  $.ajax({ type: 'get', url: path, dataType: 'jsonp', success: function(data) {
+   js_traverse(data)
+  console.log("JSON Data: " + data.name); 
+  }});
+}
+ 
+function js_traverse(jsonObject) {
+  var type = typeof jsonObject;
+  if (type == "object") {
+    for (var key in jsonObject) {
+      $("#channel").append(" ", key+": ");
+      js_traverse(jsonObject[key]);
+    }
+  } else {
+    $("#channel").append(" "+jsonObject+"\n");
+  }
+}
+
+$(document).ready(function(){
+  accessToken = window.location.href.slice(window.location.href.indexOf('access_token'));
+  $("#accessToken").append("<p>"+accessToken+"</p>");    
+  $("#login").bind( "click", function() { login_and_get_access_token() });
+  $("a").bind( "click", function() { 
+    call_resource_with_token(this);
+    return false; 
+  });
+})
+
+</script> 
+<body>
+<html>
+
+<h3><a href="/">Public REST API</a></h3>
+
+<p>På denne side kan du se din profil der er gemt i systemet. Dine oplysninger er beskyttet med OAuth 2.0 protokollen hvilken betyder du kan logge ind med din fb eller ys profil.</p>
+
+<p><input type="submit" id="login" value="press me to login"> on Facebook <input type="radio" name="path" value="https://www.facebook.com/dialog/oauth?client_id=198374376916044&redirect_uri=http://frankvilhelmsen.com/authenticated&response_type=token">  or YS <input type="radio" name="path" value="/oauth/dialog?client_id=198374376916044&redirect_uri=/&response_type=token" checked> (PS basic auth is "known customer")
+
+<p>
+
+<div id="accessToken"></div>
+
+<a href="/protected/me">/protected/me?access_token...</a>
+<pre>
+<a href="https://graph.facebook.com/me">https://graph.facebook.com/me?access_token...</a>
+<a href="https://graph.facebook.com/me/friends">https://graph.facebook.com/me/friends?access_token...</a>
+<a href="https://graph.facebook.com/me/home">https://graph.facebook.com/me/home?access_token...</a>
+<a href="https://graph.facebook.com/me/feed">https://graph.facebook.com/me/feed?access_token...</a>
+<a href="https://graph.facebook.com/me/likes">https://graph.facebook.com/me/likes?access_token...</a>
+<a href="https://graph.facebook.com/me/movies">https://graph.facebook.com/me/movies?access_token...</a>
+<a href="https://graph.facebook.com/me/music">https://graph.facebook.com/me/music?access_token...</a>
+<a href="https://graph.facebook.com/me/books">https://graph.facebook.com/me/books?access_token...</a>
+<a href="https://graph.facebook.com/me/notes">https://graph.facebook.com/me/notes?access_token...</a>
+<a href="https://graph.facebook.com/me/permissions">https://graph.facebook.com/me/permissions?access_token...</a>
+<a href="https://graph.facebook.com/me/photos">https://graph.facebook.com/me/photos?access_token...</a>
+<a href="https://graph.facebook.com/me/albums">https://graph.facebook.com/me/albums?access_token...</a>
+<a href="https://graph.facebook.com/me/videos">https://graph.facebook.com/me/videos?access_token...</a>
+<a href="https://graph.facebook.com/me/videos/uploaded">https://graph.facebook.com/me/videos/uploaded?access_token...</a>
+<a href="https://graph.facebook.com/me/events">https://graph.facebook.com/me/events?access_token...</a>
+<a href="https://graph.facebook.com/me/groups">https://graph.facebook.com/me/groups?access_token...</a>
+<a href="https://graph.facebook.com/me/checkins">https://graph.facebook.com/me/checkins?access_token...</a>
+</pre>
+
+<xmp id="channel"></xmp>
+
+</body></html>
+

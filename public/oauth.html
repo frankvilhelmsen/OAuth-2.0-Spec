@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html> 
+   <head> 
+     <title>Oauth Client Flow</title> 
+   </head> 
+   <body> 
+<script src="http://code.jquery.com/jquery-latest.min.js"></script>  
+<script> 
+
+function oauth_login() {
+  if (window.location.hash.length == 0) {
+    alert("window.location.hash.length="+window.location.hash.length)
+    var uri = 'https://www.facebook.com/dialog/oauth?client_id=198374376916044&redirect_uri=http://frankvilhelmsen.com/authenticated&response_type=token';
+    window.open (uri,'_self',false)
+   } else {
+    alert("window.location.hash.length="+window.location.hash.length)
+    var accessToken = window.location.hash.substring(1);
+    var path = "https://graph.facebook.com/me?"+accessToken+"&callback=displayUser";
+    $.ajax({ type: 'get', url: path, dataType: 'jsonp', success: function(data) {
+      $("#channel").append(data);
+	  console.log("JSON Data: " + data.name); 
+     }});
+
+    }
+   }
+
+</script> 
+   <p id="userName">Greetings: </p> 
+
+   <input type="submit" onClick="javascript:oauth_login();" value="Press me">
+
+   <pre id="channel"></pre>
+
+   </body> 
+  </html>
+

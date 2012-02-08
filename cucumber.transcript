@@ -1,0 +1,59 @@
+Feature: OAuth 2.0 Client Usage
+  
+  This feature is plaing an OAuth 2.0 Client 
+  The client application has to use a protected
+  resource on behalf of a known customer
+  
+  In order to use an protected resource 
+  As a creator of an third party application 
+  I want to authenticate my oauth enabled client-app
+
+  Scenario: registering my web application                      # features/specs.feature:11
+    Given the following user record                             # features/step_definitions/bacis_steps.rb:43
+      | key     | value                                          |
+      | appname | OAuth 2.0 Demo application                     |
+      | email   | fv@frankvilhelmsen.com                         |
+      | siteuri | http://oauth.frankvilhelmsen.com/authenticated |
+    And I am logged in as "known" with "customer"               # features/step_definitions/bacis_steps.rb:9
+    When the uri is "/company/apps/registering" posting         # features/step_definitions/bacis_steps.rb:25
+    Then the status code is 201                                 # features/step_definitions/bacis_steps.rb:13
+    And the content should contain "pending"                    # features/step_definitions/bacis_steps.rb:17
+    And the content should contain "Waiting for verification"   # features/step_definitions/bacis_steps.rb:17
+    And the content should contain "OAuth 2.0 Demo application" # features/step_definitions/bacis_steps.rb:17
+
+  Scenario: call the resource service without credentials                # features/specs.feature:24
+---------> Security filter inbound 
+<--------- Security filter outbound 
+    Given the uri is "/protected/resource"                               # features/step_definitions/bacis_steps.rb:21
+    And the status code is 401                                           # features/step_definitions/bacis_steps.rb:13
+    Then the content should contain "OAuth Exception"                    # features/step_definitions/bacis_steps.rb:17
+    And the content should contain "An active access token is mandatory" # features/step_definitions/bacis_steps.rb:17
+
+  Scenario: obtain a access token                                                                                                                # features/specs.feature:30
+    Given the following user record                                                                                                              # features/step_definitions/bacis_steps.rb:43
+      | id                     | /proceted/resource               |
+      | grant type             | client_credentials               |
+      | client-id              | 19837i4376916044                 |
+      | client-secret          | 37258968804049145bea92056ddae960 |
+      | access-token-uri       | /oauth/access_token              |
+      | user-authorization-uri | /company/authorize               |
+    And I am logged in as "known" with "customer"                                                                                                # features/step_definitions/bacis_steps.rb:9
+<--------- OAuth filter inbound require_user_privileges
+    And the uri is "/oauth/access_token?client_id=19837i4376916044&client_secret=37258968804049145bea92056ddae960&grant_type=client_credentials" # features/step_definitions/bacis_steps.rb:21
+    Then the status code is 200                                                                                                                  # features/step_definitions/bacis_steps.rb:13
+    And the content should be "access_token=198374376916044|8GZsF8FkGsmDaKVkUB3E2HbrP_M"                                                         # features/step_definitions/bacis_steps.rb:34
+
+  Scenario: call the resource service with the oauth credentials token                                             # features/specs.feature:43
+    Given the following user record                                                                                # features/step_definitions/bacis_steps.rb:43
+      | access_token | MTk4Mzc0Mzc2OTE2MDQ0fDhHWnNGOEZrR3NtRGFLVmtVQjNFMkhiclBfTQ== |
+---------> Security filter inbound 
+--------> /protected/resource MTk4Mzc0Mzc2OTE2MDQ0fDhHWnNGOEZrR3NtRGFLVmtVQjNFMkhiclBfTQ== <---------
+<--------- Security filter outbound 
+    And the uri is "/protected/resource?access_token=MTk4Mzc0Mzc2OTE2MDQ0fDhHWnNGOEZrR3NtRGFLVmtVQjNFMkhiclBfTQ==" # features/step_definitions/bacis_steps.rb:21
+    Then the status code is 200                                                                                    # features/step_definitions/bacis_steps.rb:13
+    Then the content should contain "name"                                                                         # features/step_definitions/bacis_steps.rb:17
+    Then the content should contain "frank vilhelmsen"                                                             # features/step_definitions/bacis_steps.rb:17
+
+4 scenarios (4 passed)
+21 steps (21 passed)
+0m0.066s
